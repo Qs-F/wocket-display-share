@@ -1,5 +1,17 @@
 ![Wocket](https://banner.mux.dev/?text=Wocket)
 
+This Fork enables you to use `getDisplayMedia()` instead of `getUserMedia()`. In other words, you can stream your display.
+
+```
+For those who needs extra info
+
+Just rewriting getUserMedia() -> getDisplayMedia() does not work. Cuz, many RTMP streaming services require you to share with audio.
+But with getDisplayMedia(), audio does not work, so RTMP streaming failed.
+(I found some infomation about Chrome v74 supports audio sharing with getDisplayMedia(), but in v83, could not find such option.)
+So it is mandatory to use getUserMedia with audio enabled (video can be off).
+After got audio stream, mix it up, and just stream it.
+```
+
 # Wocket (WebSocket to RTMP)
 
 This project is a proof-of-concept to demonstrate how you can stream live from your browser to an RTMP server. Streaming via RTMP is how you stream to Twitch, Youtube Live, Facebook Live, and other live streaming platforms. Typically, this requires running a local encoder software (for example: [OBS](https://obsproject.com/) or [Ecamm Live](https://www.ecamm.com/mac/ecammlive/)). Those are great products and if you are streaming seriously you probably still want to use them. But we threw this project together to show how you might be able to pull off the same thing from a browser. In this example, instead of streaming to something like Twitch, Youtube Live, etc, we will be using the live streaming API provided by Mux, which gives you an on-demand RTMP server that you can stream to.
