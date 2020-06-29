@@ -1,6 +1,8 @@
 ![Wocket](https://banner.mux.dev/?text=Wocket)
 
-This Fork enables you to use `getDisplayMedia()` instead of `getUserMedia()`. In other words, you can stream your display.
+============================ About This Fork =================================
+
+**This Fork enables you to use `getDisplayMedia()` instead of `getUserMedia()`. In other words, you can stream your display.**
 
 ```
 For those who needs extra info
@@ -11,6 +13,8 @@ But with getDisplayMedia(), audio does not work, so RTMP streaming failed.
 So it is mandatory to use getUserMedia with audio enabled (video can be off).
 After got audio stream, mix it up, and just stream it.
 ```
+
+==============================================================================
 
 # Wocket (WebSocket to RTMP)
 
