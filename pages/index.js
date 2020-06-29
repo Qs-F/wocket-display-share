@@ -1,10 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Head from 'next/head';
-import styles from '../styles/demo.module.css';
+import React, { useEffect, useState, useRef } from "react";
+import Head from "next/head";
+import styles from "../styles/demo.module.css";
 
 const CAMERA_CONSTRAINTS = {
   audio: true,
   video: true,
+};
+
+const AUDIO_CONST = {
+  audio: true,
+  video: false,
 };
 
 export default () => {
@@ -12,18 +17,19 @@ export default () => {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamKey, setStreamKey] = useState(null);
-  const [textOverlay, setTextOverlay] = useState('Live from the browser!');
+  const [textOverlay, setTextOverlay] = useState("Live from the browser!");
 
   const inputStreamRef = useRef();
   const videoRef = useRef();
   const canvasRef = useRef();
+  const audioRef = useRef();
   const wsRef = useRef();
   const mediaRecorderRef = useRef();
   const requestAnimationRef = useRef();
   const nameRef = useRef();
 
   const enableCamera = async () => {
-    inputStreamRef.current = await navigator.mediaDevices.getUserMedia(
+    inputStreamRef.current = await navigator.mediaDevices.getDisplayMedia(
       CAMERA_CONSTRAINTS
     );
 
@@ -40,12 +46,16 @@ export default () => {
     setCameraEnabled(true);
   };
 
+  const enableAudio = async () => {
+    audioRef.current = await navigator.mediaDevices.getUserMedia(AUDIO_CONST);
+  };
+
   const updateCanvas = () => {
     if (videoRef.current.ended || videoRef.current.paused) {
       return;
     }
 
-    const ctx = canvasRef.current.getContext('2d');
+    const ctx = canvasRef.current.getContext("2d");
 
     ctx.drawImage(
       videoRef.current,
@@ -55,15 +65,15 @@ export default () => {
       videoRef.current.clientHeight
     );
 
-    ctx.fillStyle = '#FB3C4E';
-    ctx.font = '50px Akkurat';
+    ctx.fillStyle = "#FB3C4E";
+    ctx.font = "50px Akkurat";
     ctx.fillText(nameRef.current, 10, 50, canvasRef.current.width - 20);
 
     requestAnimationRef.current = requestAnimationFrame(updateCanvas);
   };
 
   const stopStreaming = () => {
-    if (mediaRecorderRef.current.state === 'recording') {
+    if (mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
     }
 
@@ -73,15 +83,15 @@ export default () => {
   const startStreaming = () => {
     setStreaming(true);
 
-    const protocol = window.location.protocol.replace('http', 'ws');
+    const protocol = window.location.protocol.replace("http", "ws");
     const wsUrl = `${protocol}//${window.location.host}/rtmp?key=${streamKey}`;
     wsRef.current = new WebSocket(wsUrl);
 
-    wsRef.current.addEventListener('open', function open() {
+    wsRef.current.addEventListener("open", function open() {
       setConnected(true);
     });
 
-    wsRef.current.addEventListener('close', () => {
+    wsRef.current.addEventListener("close", () => {
       setConnected(false);
       stopStreaming();
     });
@@ -91,7 +101,7 @@ export default () => {
     // Let's do some extra work to get audio to join the party.
     // https://hacks.mozilla.org/2016/04/record-almost-everything-in-the-browser-with-mediarecorder/
     const audioStream = new MediaStream();
-    const audioTracks = inputStreamRef.current.getAudioTracks();
+    const audioTracks = audioRef.current.getAudioTracks();
     audioTracks.forEach(function (track) {
       audioStream.addTrack(track);
     });
@@ -104,15 +114,15 @@ export default () => {
     });
 
     mediaRecorderRef.current = new MediaRecorder(outputStream, {
-      mimeType: 'video/webm',
+      mimeType: "video/webm;codecs=h264",
       videoBitsPerSecond: 3000000,
     });
 
-    mediaRecorderRef.current.addEventListener('dataavailable', (e) => {
+    mediaRecorderRef.current.addEventListener("dataavailable", (e) => {
       wsRef.current.send(e.data);
     });
 
-    mediaRecorderRef.current.addEventListener('stop', () => {
+    mediaRecorderRef.current.addEventListener("stop", () => {
       stopStreaming();
       wsRef.current.close();
     });
@@ -140,11 +150,18 @@ export default () => {
         <h1>Wocket</h1>
         <p>
           A demo using modern web technologies to broadcast video from a browser
-          to a server via WebSockets. To learn more, see the <a href="https://github.com/MuxLabs/wocket">Github repo</a> or check out the <a href="https://mux.com/blog/the-state-of-going-live-from-a-browser/">Mux blog post</a> on the topic.
+          to a server via WebSockets. To learn more, see the{" "}
+          <a href="https://github.com/MuxLabs/wocket">Github repo</a> or check
+          out the{" "}
+          <a href="https://mux.com/blog/the-state-of-going-live-from-a-browser/">
+            Mux blog post
+          </a>{" "}
+          on the topic.
         </p>
 
         <p>
-          This service is provided "as is," with no uptime guarantees, support, or any of the usual stuff people pay for.
+          This service is provided "as is," with no uptime guarantees, support,
+          or any of the usual stuff people pay for.
         </p>
 
         {cameraEnabled &&
@@ -155,7 +172,7 @@ export default () => {
                   connected ? styles.connected : styles.disconnected
                 }`}
               >
-                {connected ? 'Connected' : 'Disconnected'}
+                {connected ? "Connected" : "Disconnected"}
               </span>
               <input
                 placeholder="Text Overlay"
@@ -188,7 +205,13 @@ export default () => {
         }`}
       >
         {!cameraEnabled && (
-          <button className={styles.startButton} onClick={enableCamera}>
+          <button
+            className={styles.startButton}
+            onClick={() => {
+              enableCamera();
+              enableAudio();
+            }}
+          >
             Enable Camera
           </button>
         )}
